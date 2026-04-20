@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vSv Solve - Decentralized Identity Privacy</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+        body{background:linear-gradient(135deg,#0a0e27,#0f1535);min-height:100vh;padding:20px 16px;}
+        .container{max-width:550px;margin:0 auto;}
+        .header{text-align:center;margin-bottom:24px;padding:20px;background:rgba(15,25,55,0.8);border-radius:24px;border:1px solid rgba(0,200,255,0.2);}
+        .header h1{font-size:28px;background:linear-gradient(135deg,#00c8ff,#7b2cbf);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .header p{font-size:13px;color:#8a9bb5;margin-top:8px;}
+        .status-badge{display:inline-block;background:#0d2a1f;padding:6px 16px;border-radius:40px;font-size:12px;margin-top:12px;color:#00e6a0;border:1px solid #00e6a040;}
+        .card{background:rgba(12,20,40,0.75);border-radius:20px;padding:18px;margin-bottom:16px;border:1px solid rgba(0,200,255,0.12);}
+        .card-title{font-size:18px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(0,200,255,0.25);color:#c4d4ff;}
+        input{width:100%;padding:12px 14px;margin:6px 0 10px 0;background:#0a1120;border:1px solid #2a3f6e;color:#fff;border-radius:12px;font-size:14px;}
+        input:focus{outline:none;border-color:#00c8ff;}
+        button{background:#1e3a5f;border:none;padding:12px 16px;border-radius:40px;color:white;width:100%;margin-top:8px;font-weight:600;cursor:pointer;}
+        button.primary{background:linear-gradient(90deg,#0f5b7a,#1e3a5f);}
+        button.danger{background:#6b2e2e;}
+        .result-box{margin-top:12px;padding:12px;background:#0a1022;border-radius:14px;font-size:13px;border-left:3px solid #00c8ff;}
+        .log-panel{background:#050a15;border-radius:16px;padding:14px;height:160px;overflow-y:auto;font-family:monospace;font-size:11px;margin-top:12px;border:1px solid #1a2a45;}
+        .log-entry{margin:4px 0;padding:2px 0;border-bottom:1px solid #1a2540;color:#8eaece;}
+        .log-success{color:#6bcb9e;}
+        .log-error{color:#e07c7c;}
+        .grid-2{display:flex;gap:10px;}
+        .grid-2 button{flex:1;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>vSv solve</h1>
+        <p>Decentralized Identity | Blockchain Privacy Infrastructure</p>
+        <div id="systemStatus" class="status-badge">System Active</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Register Decentralized ID</div>
+        <input type="text" id="didName" placeholder="Full Name">
+        <input type="text" id="didIdentifier" placeholder="DID (e.g. did:vsv:name)">
+        <input type="text" id="didPublicKey" placeholder="Public Key / Wallet Address">
+        <button id="registerDidBtn" class="primary">Register DID</button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Issue Verifiable Credential</div>
+        <input type="text" id="credentialId" placeholder="Credential ID">
+        <input type="text" id="credentialClaim" placeholder="Claim (e.g. Bangladesh Resident)">
+        <input type="text" id="credentialSubject" placeholder="Subject DID">
+        <button id="issueCredentialBtn">Issue Credential</button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Verify Credential</div>
+        <input type="text" id="verifyCredentialId" placeholder="Credential ID to verify">
+        <button id="verifyCredentialBtn">Verify</button>
+        <div id="verificationResult" class="result-box">Verification result will appear here</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Revoke Credential</div>
+        <input type="text" id="revokeCredentialId" placeholder="Credential ID to revoke">
+        <button id="revokeCredentialBtn" class="danger">Revoke Credential</button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Identity Management</div>
+        <div class="grid-2">
+            <button id="viewMyDataBtn">View All DIDs</button>
+            <button id="viewCredentialsBtn">View All Credentials</button>
+        </div>
+        <div id="dataDisplayPanel" class="result-box">Click a button to view</div>
+    </div>
+
+    <div class="log-panel" id="logPanel">
+        <div class="log-entry">[INIT] vSv Solve Identity Privacy System</div>
+        <div class="log-entry">[INIT] Ready for use</div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_DIDS = 'vsv_dids';
+    const STORAGE_CREDS = 'vsv_creds';
+    let didRegistry = JSON.parse(localStorage.getItem(STORAGE_DIDS) || '{}');
+    let credentialStore = JSON.parse(localStorage.getItem(STORAGE_CREDS) || '{}');
+
+    function saveData() {
+        localStorage.setItem(STORAGE_DIDS, JSON.stringify(didRegistry));
+        localStorage.setItem(STORAGE_CREDS, JSON.stringify(credentialStore));
+    }
+
+    function addLog(msg, type = 'info') {
+        const logPanel = document.getElementById('logPanel');
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        const time = new Date().toLocaleTimeString();
+        let prefix = '[INFO]';
+        if (type === 'success') { prefix = '[OK]'; div.classList.add('log-success'); }
+        if (type === 'error') { prefix = '[ERR]'; div.classList.add('log-error'); }
+        div.innerHTML = `${prefix} ${time} - ${msg}`;
+        logPanel.appendChild(div);
+        logPanel.scrollTop = logPanel.scrollHeight;
+        while(logPanel.children.length > 40) logPanel.removeChild(logPanel.firstChild);
+    }
+
+    function updateStatus() {
+        document.getElementById('systemStatus').innerHTML = `Active | ${Object.keys(didRegistry).length} DIDs | ${Object.keys(credentialStore).length} Creds`;
+    }
+
+    document.getElementById('registerDidBtn').onclick = () => {
+        const name = document.getElementById('didName').value.trim();
+        const did = document.getElementById('didIdentifier').value.trim();
+        const pubkey = document.getElementById('didPublicKey').value.trim();
+        if(!name || !did) { addLog('Name and DID required', 'error'); return; }
+        if(didRegistry[did]) { addLog('DID exists', 'error'); return; }
+        didRegistry[did] = { name, did, pubkey: pubkey || 'N/A', registeredAt: new Date().toISOString(), credentials: [] };
+        saveData();
+        addLog(`DID registered: ${did}`, 'success');
+        updateStatus();
+        document.getElementById('didName').value = '';
+        document.getElementById('didIdentifier').value = '';
+        document.getElementById('didPublicKey').value = '';
+    };
+
+    document.getElementById('issueCredentialBtn').onclick = () => {
+        const id = document.getElementById('credentialId').value.trim();
+        const claim = document.getElementById('credentialClaim').value.trim();
+        const subject = document.getElementById('credentialSubject').value.trim();
+        if(!id || !claim || !subject) { addLog('All fields required', 'error'); return; }
+        if(credentialStore[id]) { addLog('Credential ID exists', 'error'); return; }
+        if(!didRegistry[subject]) { addLog('Subject DID not found', 'error'); return; }
+        credentialStore[id] = { id, claim, subject, issuer: 'system', issuedAt: new Date().toISOString(), revoked: false };
+        if(didRegistry[subject]) didRegistry[subject].credentials.push(id);
+        saveData();
+        addLog(`Credential issued: ${id}`, 'success');
+        updateStatus();
+        document.getElementById('credentialId').value = '';
+        document.getElementById('credentialClaim').value = '';
+        document.getElementById('credentialSubject').value = '';
+    };
+
+    document.getElementById('verifyCredentialBtn').onclick = () => {
+        const id = document.getElementById('verifyCredentialId').value.trim();
+        if(!id) { addLog('Enter Credential ID', 'error'); return; }
+        const cred = credentialStore[id];
+        const resultDiv = document.getElementById('verificationResult');
+        if(!cred) { resultDiv.innerHTML = `Credential ${id} NOT FOUND`; addLog(`Not found: ${id}`, 'error'); return; }
+        const isValid = !cred.revoked;
+        resultDiv.innerHTML = `<strong>Verification Result</strong><br>ID: ${id}<br>Claim: ${cred.claim}<br>Subject: ${cred.subject}<br>Status: <span style="color:${isValid ? '#6bcb9e' : '#e07c7c'}">${isValid ? 'VALID' : 'REVOKED'}</span><br>Issued: ${new Date(cred.issuedAt).toLocaleDateString()}`;
+        addLog(`Verified ${id}: ${isValid ? 'VALID' : 'REVOKED'}`, isValid ? 'success' : 'error');
+    };
+
+    document.getElementById('revokeCredentialBtn').onclick = () => {
+        const id = document.getElementById('revokeCredentialId').value.trim();
+        if(!id) { addLog('Enter Credential ID', 'error'); return; }
+        const cred = credentialStore[id];
+        if(!cred) { addLog('Credential not found', 'error'); return; }
+        if(cred.revoked) { addLog('Already revoked', 'error'); return; }
+        cred.revoked = true;
+        cred.revokedAt = new Date().toISOString();
+        saveData();
+        addLog(`Revoked: ${id}`, 'success');
+        updateStatus();
+        document.getElementById('revokeCredentialId').value = '';
+    };
+
+    document.getElementById('viewMyDataBtn').onclick = () => {
+        const panel = document.getElementById('dataDisplayPanel');
+        const dids = Object.keys(didRegistry);
+        if(dids.length === 0) { panel.innerHTML = 'No DIDs registered'; return; }
+        let html = '<strong>Registered DIDs</strong><br><br>';
+        for(const did of dids) {
+            const d = didRegistry[did];
+            html += `<div style="margin-bottom:10px;padding:8px;background:#0a1022;border-radius:10px;"><strong>${d.name}</strong><br><span style="font-size:11px;">${d.did}</span><br><span style="font-size:11px;">Credentials: ${d.credentials.length}</span></div>`;
+        }
+        panel.innerHTML = html;
+    };
+
+    document.getElementById('viewCredentialsBtn').onclick = () => {
+        const panel = document.getElementById('dataDisplayPanel');
+        const creds = Object.keys(credentialStore);
+        if(creds.length === 0) { panel.innerHTML = 'No credentials issued'; return; }
+        let html = '<strong>Issued Credentials</strong><br><br>';
+        for(const id of creds) {
+            const c = credentialStore[id];
+            const status = c.revoked ? 'REVOKED' : 'ACTIVE';
+            html += `<div style="margin-bottom:10px;padding:8px;background:#0a1022;border-radius:10px;"><strong>${id}</strong> <span style="color:${c.revoked ? '#e07c7c' : '#6bcb9e'}">[${status}]</span><br><span style="font-size:11px;">${c.claim}</span><br><span style="font-size:11px;">→ ${c.subject}</span></div>`;
+        }
+        panel.innerHTML = html;
+    };
+
+    updateStatus();
+    addLog('System ready. Register your first DID.', 'success');
+</script>
+</body>
+</html>
