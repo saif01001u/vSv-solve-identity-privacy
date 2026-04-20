@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>vSv Solve - Decentralized Identity Privacy System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #0f1535 100%);
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+        
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: rgba(15, 25, 55, 0.8);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00c8ff, #7b2cbf);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .header p {
+            font-size: 13px;
+            color: #8a9bb5;
+            margin-top: 8px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: #0d2a1f;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 12px;
+            color: #00e6a0;
+            border: 1px solid #00e6a040;
+        }
+        
+        /* Cards */
+        .card {
+            background: rgba(12, 20, 40, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0, 200, 255, 0.12);
+            transition: all 0.2s;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.25);
+            color: #c4d4ff;
+        }
+        
+        /* Form Elements */
+        input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 6px 0 10px 0;
+            background: #0a1120;
+            border: 1px solid #2a3f6e;
+            color: #ffffff;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #00c8ff;
+            background: #0e1728;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: #5a6e8a;
+        }
+        
+        /* Buttons */
+        button {
+            background: #1e3a5f;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 40px;
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        button.primary {
+            background: linear-gradient(90deg, #0f5b7a, #1e3a5f);
+        }
+        
+        button.secondary {
+            background: #2a4a6f;
+        }
+        
+        button.danger {
+            background: #6b2e2e;
+        }
+        
+        button.info {
+            background: #2a5f6b;
+        }
+        
+        button:active {
+            transform: scale(0.97);
+        }
+        
+        /* Result and Log Panels */
+        .result-box {
+            margin-top: 12px;
+            padding: 12px;
+            background: #0a1022;
+            border-radius: 14px;
+            font-size: 13px;
+            border-left: 3px solid #00c8ff;
+            word-break: break-word;
+        }
+        
+        .log-panel {
+            background: #050a15;
+            border-radius: 16px;
+            padding: 14px;
+            height: 160px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            margin-top: 12px;
+            border: 1px solid #1a2a45;
+        }
+        
+        .log-entry {
+            margin: 4px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid #1a2540;
+            color: #8eaece;
+        }
+        
+        .log-success {
+            color: #6bcb9e;
+        }
+        
+        .log-error {
+            color: #e07c7c;
+        }
+        
+        hr {
+            border-color: #1a2a55;
+            margin: 12px 0;
+        }
+        
+        .small-text {
+            font-size: 11px;
+            color: #6a7d9e;
+        }
+        
+        .grid-2 {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .grid-2 button {
+            flex: 1;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            .card {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>vSv solve</h1>
+        <p>Decentralized Identity | Blockchain Privacy Infrastructure</p>
+        <div id="systemStatus" class="status-badge">System Active - Local Mode</div>
+    </div>
+
+    <!-- Register DID Card -->
+    <div class="card">
+        <div class="card-title">Register Decentralized ID</div>
+        <input type="text" id="didName" placeholder="Full Name (e.g. Rafiqul Islam)">
+        <input type="text" id="didIdentifier" placeholder="DID (e.g. did:vsv:rafiqul)">
+        <input type="text" id="didPublicKey" placeholder="Public Key / Wallet Address (optional)">
+        <button id="registerDidBtn" class="primary">Register DID on Chain</button>
+    </div>
+
+    <!-- Issue Credential Card -->
+    <div class="card">
+        <div class="card-title">Issue Verifiable Credential</div>
+        <input type="text" id="credentialId" placeholder="Credential ID (e.g. cred_bangladesh_001)">
+        <input type="text" id="credentialClaim" placeholder="Claim (e.g. Bangladesh Resident, Age 25)">
+        <input type="text" id="credentialSubject" placeholder="Subject DID (who receives this)">
+        <button id="issueCredentialBtn" class="secondary">Issue Credential</button>
+    </div>
+
+    <!-- Verify Credential Card -->
+    <div class="card">
+        <div class="card-title">Verify Credential</div>
+        <input type="text" id="verifyCredentialId" placeholder="Enter Credential ID to verify">
+        <button id="verifyCredentialBtn" class="info">Verify On-Chain</button>
+        <div id="verificationResult" class="result-box">
+            <span class="small-text">Verification result will appear here</span>
+        </div>
+    </div>
+
+    <!-- Revoke Credential Card -->
+    <div class="card">
+        <div class="card-title">Revoke Credential</div>
+        <input type="text" id="revokeCredentialId" placeholder="Credential ID to revoke">
+        <button id="revokeCredentialBtn" class="danger">Revoke Credential</button>
+    </div>
+
+    <!-- Data Management Card -->
+    <div class="card">
+        <div class="card-title">Identity Management</div>
+        <div class="grid-2">
+            <button id="viewMyDataBtn">View All DIDs</button>
+            <button id="viewCredentialsBtn">View All Credentials</button>
+        </div>
+        <div id="dataDisplayPanel" class="result-box">
+            <span class="small-text">Click a button to view registered identities</span>
+        </div>
+    </div>
+
+    <!-- System Log Panel -->
+    <div class="log-panel" id="logPanel">
+        <div class="log-entry">[INIT] vSv Solve Identity Privacy System</div>
+        <div class="log-entry">[INIT] Local Storage Mode - Ready for Demo</div>
+        <div class="log-entry">[INIT] Blockchain smart contract integration ready</div>
+    </div>
+</div>
+
+<script>
+    // Storage Keys
+    const STORAGE_DIDS = 'vsv_dids_registry';
+    const STORAGE_CREDS = 'vsv_credentials_store';
+    
+    // Data structures
+    let didRegistry = {};
+    let credentialStore = {};
+    
+    // Helper: Load data from localStorage
+    function loadData() {
+        const savedDids = localStorage.getItem(STORAGE_DIDS);
+        const savedCreds = localStorage.getItem(STORAGE_CREDS);
+        
+        if (savedDids) {
+            didRegistry = JSON.parse(savedDids);
+        }
+        if (savedCreds) {
+            credentialStore = JSON.parse(savedCreds);
+        }
+    }
+    
+    // Helper: Save data to localStorage
+    function saveData() {
+        localStorage.setItem(STORAGE_DIDS, JSON.stringify(didRegistry));
+        localStorage.setItem(STORAGE_CREDS, JSON.stringify(credentialStore));
+    }
+    
+    // Helper: Add log entry
+    function addLog(message, type = 'info') {
+        const logPanel = document.getElementById('logPanel');
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        const timestamp = new Date().toLocaleTimeString();
+        let prefix = '[INFO]';
+        let styleClass = '';
+        
+        if (type === 'success') {
+            prefix = '[OK]';
+            styleClass = 'log-success';
+        } else if (type === 'error') {
+            prefix = '[ERR]';
+            styleClass = 'log-error';
+        } else if (type === 'tx') {
+            prefix = '[TX]';
+            styleClass = 'log-success';
+        }
+        
+        logEntry.innerHTML = `<span class="${styleClass}">${prefix} ${timestamp} - ${message}</span>`;
+        logPanel.appendChild(logEntry);
+        logEntry.scrollIntoView();
+        
+        // Keep last 50 logs
+        while (logPanel.children.length > 50) {
+            logPanel.removeChild(logPanel.firstChild);
+        }
+    }
+    
+    // Update status display
+    function updateStatusDisplay() {
+        const didCount = Object.keys(didRegistry).length;
+        const credCount = Object.keys(credentialStore).length;
+        const statusDiv = document.getElementById('systemStatus');
+        statusDiv.innerHTML = `Active | ${didCount} DIDs | ${credCount} Credentials`;
+    }
+    
+    // Register DID
+    function registerDID(name, did, publicKey) {
+        if (!name || !did) {
+            addLog('Name and DID are required', 'error');
+            return false;
+        }
+        
+        if (didRegistry[did]) {
+            addLog(`DID ${did} already exists`, 'error');
+            return false;
+        }
+        
+        didRegistry[did] = {
+            name: name,
+            did: did,
+            publicKey: publicKey || 'not provided',
+            registeredAt: new Date().toISOString(),
+            credentials: []
+        };
+        
+        saveData();
+        addLog(`DID registered: ${did} (${name})`, 'success');
+        updateStatusDisplay();
+        return true;
+    }
+    
+    // Issue Credential
+    function issueCredential(credId, claim, subjectDid) {
+        if (!credId || !claim || !subjectDid) {
+            addLog('Credential ID, Claim, and Subject DID are required', 'error');
+            return false;
+        }
+        
+        if (credentialStore[credId]) {
+            addLog(`Credential ${credId} already exists`, 'error');
+            return false;
+        }
+        
+        if (!didRegistry[subjectDid]) {
+            addLog(`Subject DID ${subjectDid} not found. Register DID first.`, 'error');
+            return false;
+        }
+        
+        credentialStore[credId] = {
+            id: credId,
+            claim: claim,
+            subject: subjectDid,
+            issuer: 'system',
+            issuedAt: new Date().toISOString(),
+            revoked: false,
+            revokedAt: null
+        };
+        
+        if (didRegistry[subjectDid]) {
+            didRegistry[subjectDid].credentials.push(credId);
+        }
+        
+        saveData();
+        addLog(`Credential issued: ${credId} -> ${subjectDid}`, 'success');
+        updateStatusDisplay();
+        return true;
+    }
+    
+    // Verify Credential
+    function verifyCredential(credId) {
+        const cred = credentialStore[credId];
+        
+        if (!cred) {
+            addLog(`Credential ${credId} not found`, 'error');
+            return { found: false, valid: false };
+        }
+        
+        const isValid = !cred.revoked;
+        const status = isValid ? 'VALID' : 'REVOKED';
+        
+        addLog(`Verification: ${credId} is ${status}`, isValid ? 'success' : 'error');
+        
+        return {
+            found: true,
+            valid: isValid,
+            revoked: cred.revoked,
+            claim: cred.claim,
+            subject: cred.subject,
+            issuedAt: cred.issuedAt
+        };
+    }
+    
+    // Revoke Credential
+    function revokeCredential(credId) {
+        const cred = credentialStore[credId];
+        
+        if (!cred) {
+            addLog(`Credential ${credId} not found`, 'error');
+            return false;
+        }
+        
+        if (cred.revoked) {
+            addLog(`Credential ${credId} is already revoked`, 'error');
+            return false;
+        }
+        
+        cred.revoked = true;
+        cred.revokedAt = new Date().toISOString();
+        saveData();
+        
+        addLog(`Credential revoked: ${credId}`, 'success');
+        updateStatusDisplay();
+        return true;
+    }
+    
+    // View all DIDs
+    function viewAllDIDs() {
+        const panel = document.getElementById('dataDisplayPanel');
+        const dids = Object.keys(didRegistry);
+        
+        if (dids.length === 0) {
+            panel.innerHTML = '<span class="small-text">No DIDs registered yet. Create your first DID.</span>';
+            return;
+        }
+        
+        let html = '<strong>Registered Identities:</strong><br><br>';
+        for (const did of dids) {
+            const data = didRegistry[did];
+            html += `<div style="margin-bottom: 12px; padding: 8px; background: #0a1022; border-radius: 10px;">`;
+            html += `<strong>${data.name}</strong><br>`;
+            html += `<span class="small-text">DID: ${data.did}</span><br>`;
+            html += `<span class="small-text">Public Key: ${data.publicKey.substring(0, 20)}...</span><br>`;
+            html += `<span class="small-text">Credentials: ${data.credentials.length}</span>`;
+            html += `</div>`;
+        }
+        panel.innerHTML = html;
+        addLog(`Displayed ${dids.length} registered DIDs`, 'info');
+    }
+    
+    // View all Credentials
+    function viewAllCredentials() {
+        const panel = document.getElementById('dataDisplayPanel');
+        const creds = Object.keys(credentialStore);
+        
+        if (creds.length === 0) {
+            panel.innerHTML = '<span class="small-text">No credentials issued yet. Issue your first credential.</span>';
+            return;
+        }
+        
+        let html = '<strong>Issued Credentials:</strong><br><br>';
+        for (const credId of creds) {
+            const cred = credentialStore[credId];
+            const status = cred.revoked ? 'REVOKED' : 'ACTIVE';
+            const statusColor = cred.revoked ? '#e07c7c' : '#6bcb9e';
+            
+            html += `<div style="margin-bottom: 12px; padding: 8px; background: #0a1022; border-radius: 10px;">`;
+            html += `<strong>ID: ${credId}</strong> <span style="color: ${statusColor};">[${status}]</span><br>`;
+            html += `<span class="small-text">Claim: ${cred.claim}</span><br>`;
+            html += `<span class="small-text">Subject: ${cred.subject}</span><br>`;
+            html += `<span class="small-text">Issued: ${new Date(cred.issuedAt).toLocaleDateString()}</span>`;
+            if (cred.revokedAt) {
+                html += `<br><span class="small-text">Revoked: ${new Date(cred.revokedAt).toLocaleDateString()}</span>`;
+            }
+            html += `</div>`;
+        }
+        panel.innerHTML = html;
+        addLog(`Displayed ${creds.length} credentials`, 'info');
+    }
+    
+    // Display verification result in UI
+    function displayVerificationResult(credId, result) {
+        const panel = document.getElementById('verificationResult');
+        
+        if (!result.found) {
+            panel.innerHTML = `
+                <strong>Verification Failed</strong><br>
+                Credential ID: ${credId}<br>
+                Status: NOT FOUND on chain
+            `;
+            return;
+        }
+        
+        const statusText = result.valid ? 'VALID - ACTIVE' : 'INVALID - REVOKED';
+        const statusColor = result.valid ? '#6bcb9e' : '#e07c7c';
+        
+        panel.innerHTML = `
+            <strong>Verification Result</strong><br>
+            Credential ID: ${credId}<br>
+            Status: <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span><br>
+            Claim: ${result.claim}<br>
+            Subject: ${result.subject}<br>
+            Issued: ${new Date(result.issuedAt).toLocaleString()}<br>
+            Revoked: ${result.revoked ? 'Yes' : 'No'}
+        `;
+    }
+    
+    // Initialize and set up event listeners
+    function init() {
+        loadData();
+        updateStatusDisplay();
+        
+        // Register DID button
+        document.getElementById('registerDidBtn').addEventListener('click', () => {
+            const name = document.getElementById('didName').value.trim();
+            const did = document.getElementById('didIdentifier').value.trim();
+            const pubKey = document.getElementById('didPublicKey').value.trim();
+            
+            if (registerDID(name, did, pubKey)) {
+                document.getElementById('didName').value = '';
+                document.getElementById('didIdentifier').value = '';
+                document.getElementById('didPublicKey').value = '';
+            }
+        });
+        
+        // Issue Credential button
+        document.getElementById('issueCredentialBtn').addEventListener('click', () => {
+            const credId = document.getElementById('credentialId').value.trim();
+            const claim = document.getElementById('credentialClaim').value.trim();
+            const subject = document.getElementById('credentialSubject').value.trim();
+            
+            if (issueCredential(credId, claim, subject)) {
+                document.getElementById('credentialId').value = '';
+                document.getElementById('credentialClaim').value = '';
+                document.getElementById('credentialSubject').value = '';
+            }
+        });
+        
+        // Verify Credential button
+        document.getElementById('verifyCredentialBtn').addEventListener('click', () => {
+            const credId = document.getElementById('verifyCredentialId').value.trim();
+            if (!credId) {
+                addLog('Enter a Credential ID to verify', 'error');
+                return;
+            }
+            const result = verifyCredential(credId);
+            displayVerificationResult(credId, result);
+        });
+        
+        // Revoke Credential button
+        document.getElementById('revokeCredentialBtn').addEventListener('click', () => {
+            const credId = document.getElementById('revokeCredentialId').value.trim();
+            if (!credId) {
+                addLog('Enter a Credential ID to revoke', 'error');
+                return;
+            }
+            if (revokeCredential(credId)) {
+                document.getElementById('revokeCredentialId').value = '';
+                // Refresh verification display if same ID was shown
+                const verifyInput = document.getElementById('verifyCredentialId').value;
+                if (verifyInput === credId) {
+                    const updatedResult = verifyCredential(credId);
+                    displayVerificationResult(credId, updatedResult);
+                }
+            }
+        })
